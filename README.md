@@ -1,20 +1,20 @@
 # Skills Viewer
 
-A simple web app that displays OpenClaw skills installed for an agent.
+Web apps that display OpenClaw skills for Lilly and Robert agents.
 
-## What it shows
+## Projects
 
-- **Global Skills**: Skills from shared-agent-skills directories (configured in OpenClaw)
-- **Workspace Skills**: Skills from the workspace/skills directory
-- **Config Entries**: Skills configured with entries in OpenClaw config
+| Agent | Repo | Skills Found |
+|-------|------|--------------|
+| **Lilly** | [fam-hulten/skills-viewer](https://github.com/fam-hulten/skills-viewer) | 26 (2 global, 24 workspace) |
+| **Robert** | [fam-hulten/skills-app](https://github.com/fam-hulten/skills-app) | 65 (53 global, 10 workspace, 2 shared) |
 
-## Quick Start
+## Architecture
 
-```bash
-npm install
-npm start
-# Open http://localhost:3000
-```
+Both apps follow the same pattern:
+- Express server reads OpenClaw config (`openclaw.json`)
+- Scans skills directories (global + workspace)
+- Exposes REST API + web dashboard
 
 ## API
 
@@ -22,20 +22,54 @@ npm start
 GET /api/skills
 ```
 
-Returns JSON with:
-- `agent`: Agent name
-- `timestamp`: When data was collected
-- `global`: Array of global skills
-- `workspace`: Array of workspace skills
-- `config`: Config entries
+Response:
+```json
+{
+  "agent": "Lilly",
+  "timestamp": "2026-03-25T21:48:27.973Z",
+  "global": [
+    {
+      "name": "experiment-protocol",
+      "description": "Koordineringsprotokoll för experiment...",
+      "path": "/path/to/skill",
+      "files": ["SKILL.md", "_meta.json"],
+      "hasReadme": false
+    }
+  ],
+  "workspace": [...],
+  "config": {...}
+}
+```
+
+## Development
+
+### Lilly's version
+```bash
+git clone https://github.com/fam-hulten/skills-viewer
+cd skills-viewer
+npm install
+npm start
+# → http://localhost:3000
+```
+
+### Roberts version
+```bash
+git clone https://github.com/fam-hulten/skills-app
+cd skills-app
+npm install
+npm start
+# → http://localhost:3000
+```
 
 ## Docker
 
+### Build
 ```bash
-# Build
 docker build -t skills-viewer .
+```
 
-# Run (Lilly's config)
+### Run (Lilly)
+```bash
 docker run -p 3000:3000 \
   -e OPENCLAW_CONFIG=/config/openclaw.json \
   -e SKILLS_WORKSPACE=/skills/workspace \
@@ -44,7 +78,7 @@ docker run -p 3000:3000 \
   skills-viewer
 ```
 
-## Environment Variables
+### Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
@@ -53,25 +87,28 @@ docker run -p 3000:3000 \
 | `AGENT_NAME` | Name shown in UI | `Lilly` |
 | `PORT` | HTTP port | `3000` |
 
-## For Robert
+## Skills Structure
 
-To create Robert's version:
+Skills are loaded from two directories:
+1. **Global** - from `skills.load.extraDirs` in OpenClaw config (shared-agent-skills)
+2. **Workspace** - from `workspace/skills/` directory
 
-1. Clone this repo
-2. Modify `skills-scanner.js` to point to Robert's paths:
-   - Robert's OpenClaw config
-   - Robert's workspace skills
-3. Set `AGENT_NAME=Robert`
-4. Build and deploy
-
-## Skill Structure
-
-Each skill directory should contain:
-- `SKILL.md` - Contains `description:` field
+Each skill should contain:
+- `SKILL.md` - with `description:` frontmatter field
 - `README.md` (optional)
 
-The scanner extracts:
-- Skill name (directory name)
-- Description (from SKILL.md `description:` field)
-- File list (non-hidden files)
-- Whether README exists
+## Playwright Tests
+
+Roberts version includes smoke tests in `tests/` directory.
+
+Run in Docker:
+```bash
+docker compose -f docker-compose.test.yml up
+```
+
+## Experiment Notes (2026-03-25)
+
+- Johanna requested separate skills viewers for Lilly and Robert
+- Both agents worked independently following multi-agent collaboration protocol
+- Robert verified API functionality and found 65 skills
+- Docker hosting to be set up by Robert tomorrow
