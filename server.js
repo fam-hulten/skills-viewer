@@ -3,7 +3,8 @@ const path = require('path');
 const { scanSkills } = require('./skills-scanner');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const AGENT_NAME = process.env.AGENT_NAME || 'Lilly';
 
 // Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
@@ -12,7 +13,7 @@ app.get('/api/skills', async (req, res) => {
   try {
     const skills = await scanSkills();
     res.json({
-      agent: 'Lilly',
+      agent: AGENT_NAME,
       timestamp: new Date().toISOString(),
       ...skills
     });
@@ -26,5 +27,5 @@ app.get('/', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Lilly Skills Viewer running at http://localhost:${PORT}`);
+  console.log(`${AGENT_NAME} Skills Viewer running at http://localhost:${PORT}`);
 });

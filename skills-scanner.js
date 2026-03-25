@@ -5,10 +5,13 @@ const path = require('path');
  * Scan OpenClaw skills directories and extract skill information
  */
 async function scanSkills() {
-  const config = JSON.parse(fs.readFileSync('/home/node/.openclaw/openclaw.json', 'utf8'));
+  // Allow path overrides via environment variables
+  const configPath = process.env.OPENCLAW_CONFIG || '/home/node/.openclaw/openclaw.json';
+  const workspaceSkillsDir = process.env.SKILLS_WORKSPACE || '/home/node/.openclaw/workspace/skills';
+  
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
   
   const extraDirs = config.skills?.load?.extraDirs || [];
-  const workspaceSkillsDir = '/home/node/.openclaw/workspace/skills';
   
   const skills = {
     global: [],      // From shared-agent-skills (extraDirs)
