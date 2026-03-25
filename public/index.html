@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lilly's Skills</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      color: #eee;
+      padding: 2rem;
+    }
+    
+    h1 { 
+      text-align: center; 
+      margin-bottom: 0.5rem;
+      color: #e94560;
+    }
+    
+    .timestamp {
+      text-align: center;
+      color: #888;
+      font-size: 0.85rem;
+      margin-bottom: 2rem;
+    }
+    
+    .agent-badge {
+      display: inline-block;
+      background: #e94560;
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.9rem;
+      margin-bottom: 2rem;
+    }
+    
+    .section {
+      max-width: 900px;
+      margin: 0 auto 2rem;
+    }
+    
+    .section-title {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid #e94560;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .section-title .emoji {
+      font-size: 1.5rem;
+    }
+    
+    .skills-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    
+    .skill-card {
+      background: rgba(255,255,255,0.05);
+      border-radius: 12px;
+      padding: 1.25rem;
+      border: 1px solid rgba(255,255,255,0.1);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    
+    .skill-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(233, 69, 96, 0.2);
+    }
+    
+    .skill-name {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #e94560;
+      margin-bottom: 0.5rem;
+    }
+    
+    .skill-description {
+      font-size: 0.9rem;
+      color: #bbb;
+      line-height: 1.5;
+      margin-bottom: 0.75rem;
+    }
+    
+    .skill-meta {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    
+    .skill-tag {
+      background: rgba(233, 69, 96, 0.2);
+      color: #e94560;
+      padding: 0.2rem 0.6rem;
+      border-radius: 0.5rem;
+      font-size: 0.75rem;
+    }
+    
+    .skill-files {
+      margin-top: 0.75rem;
+      font-size: 0.8rem;
+      color: #666;
+    }
+    
+    .config-section {
+      background: rgba(255,255,255,0.03);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .config-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    
+    .config-item:last-child {
+      border-bottom: none;
+    }
+    
+    .config-key {
+      color: #888;
+    }
+    
+    .config-value {
+      color: #4ecca3;
+      font-family: monospace;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 3rem;
+      color: #888;
+    }
+    
+    .error {
+      background: rgba(233, 69, 96, 0.1);
+      border: 1px solid #e94560;
+      border-radius: 8px;
+      padding: 1rem;
+      color: #e94560;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>✨ Lilly's Skills</h1>
+  <p class="timestamp" id="timestamp">Loading...</p>
+  
+  <div style="text-align: center;">
+    <span class="agent-badge">OpenClaw Agent</span>
+  </div>
+  
+  <div id="content">
+    <div class="loading">Loading skills...</div>
+  </div>
+  
+  <script>
+    async function loadSkills() {
+      try {
+        const res = await fetch('/api/skills');
+        const data = await res.json();
+        
+        document.getElementById('timestamp').textContent = 
+          `Last updated: ${new Date(data.timestamp).toLocaleString()}`;
+        
+        let html = '';
+        
+        // Global Skills
+        html += `<div class="section">
+          <h2 class="section-title"><span class="emoji">🌍</span> Global Skills</h2>
+          <div class="skills-grid">`;
+        
+        if (data.global.length === 0) {
+          html += '<p style="color:#888;padding:1rem;">No global skills found</p>';
+        } else {
+          for (const skill of data.global) {
+            html += renderSkillCard(skill, 'global');
+          }
+        }
+        html += '</div></div>';
+        
+        // Workspace Skills
+        html += `<div class="section">
+          <h2 class="section-title"><span class="emoji">📁</span> Workspace Skills</h2>
+          <div class="skills-grid">`;
+        
+        if (data.workspace.length === 0) {
+          html += '<p style="color:#888;padding:1rem;">No workspace skills found</p>';
+        } else {
+          for (const skill of data.workspace) {
+            html += renderSkillCard(skill, 'workspace');
+          }
+        }
+        html += '</div></div>';
+        
+        // Config entries
+        const configKeys = Object.keys(data.config || {});
+        if (configKeys.length > 0) {
+          html += `<div class="section">
+            <h2 class="section-title"><span class="emoji">⚙️</span> Config Entries</h2>
+            <div class="config-section">`;
+          
+          for (const key of configKeys) {
+            html += `<div class="config-item">
+              <span class="config-key">${key}</span>
+              <span class="config-value">${JSON.stringify(data.config[key]).substring(0, 50)}...</span>
+            </div>`;
+          }
+          html += '</div></div>';
+        }
+        
+        document.getElementById('content').innerHTML = html;
+        
+      } catch (error) {
+        document.getElementById('content').innerHTML = 
+          `<div class="error">Error loading skills: ${error.message}</div>`;
+      }
+    }
+    
+    function renderSkillCard(skill, type) {
+      return `<div class="skill-card">
+        <div class="skill-name">${skill.name}</div>
+        <div class="skill-description">${skill.description || 'No description'}</div>
+        <div class="skill-meta">
+          <span class="skill-tag">${type}</span>
+          ${skill.hasReadme ? '<span class="skill-tag">📖 README</span>' : ''}
+        </div>
+        ${skill.files && skill.files.length > 0 ? 
+          `<div class="skill-files">Files: ${skill.files.slice(0, 5).join(', ')}${skill.files.length > 5 ? '...' : ''}</div>` : 
+          ''}
+      </div>`;
+    }
+    
+    loadSkills();
+  </script>
+</body>
+</html>

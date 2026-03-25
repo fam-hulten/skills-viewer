@@ -1,0 +1,12 @@
+{
+  "name": "lilly-skills-viewer",
+  "version": "1.0.0",
+  "description": "Display installed and active OpenClaw skills for Lilly",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}
